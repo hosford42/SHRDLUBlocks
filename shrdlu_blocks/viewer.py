@@ -60,8 +60,8 @@ class Viewer:
                                             self._width, self._text_height)
         self._input_text_box = pygame.Rect(0.0, self._height - self._text_height,
                                            self._width, self._text_height)
-        self._initial_output = initial_output
-        self._output_text = initial_output
+        self._initial_output = initial_output or ''
+        self._output_text = self._initial_output
         self._input_text = ''
         self._input_enabled = True
 
