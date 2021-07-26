@@ -97,7 +97,8 @@ def demo():
     screen_height = screen_info.current_h
     screen = pygame.display.set_mode((screen_width // 2, screen_height // 2))
 
-    Viewer(screen, "SHRDLU Blocks Demo", demo_callback).run()
+    Viewer(screen, "SHRDLU Blocks Demo", demo_callback,
+           initial_output='Type "help" for a list of available commands.').run()
 
 
 if __name__ == '__main__':

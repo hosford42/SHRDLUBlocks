@@ -18,6 +18,20 @@ pip install shrdlu_blocks
 ```
 
 
+## Demo
+
+Once the library is installed, you can run a simple demo from the command line
+with:
+
+```commandline
+python -m shrdlu_blocks.demo
+```
+
+The demo treats the input as a simple command line rather than a source of 
+natural language text. It exists primarily to serve as a coding example and a 
+means for trying out the capabilities of the system.
+
+
 ## Usage
 
 ```python3
@@ -57,6 +71,7 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
 
 ## The Simulated Environment
 
@@ -175,6 +190,7 @@ Tags whose values are updated by the controller include:
   also cause the grasper to release an object it has grasped. 
 * `raise_grasper` Raise the grasper. If the grasper is grasping an object, the
   object will be raised with it.
+
 
 ## Links to Resources
 

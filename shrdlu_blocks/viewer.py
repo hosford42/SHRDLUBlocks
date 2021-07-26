@@ -26,7 +26,8 @@ class Viewer:
     """
 
     def __init__(self, screen, title: str = None,
-                 callback: Callable[[Controller, str], str] = None):
+                 callback: Callable[[Controller, str], str] = None,
+                 initial_output: str = None):
         self._screen = screen
         self._width = self._screen.get_width()
         self._height = self._screen.get_height()
@@ -59,7 +60,8 @@ class Viewer:
                                             self._width, self._text_height)
         self._input_text_box = pygame.Rect(0.0, self._height - self._text_height,
                                            self._width, self._text_height)
-        self._output_text = ''
+        self._initial_output = initial_output
+        self._output_text = initial_output
         self._input_text = ''
         self._input_enabled = True
 
@@ -73,7 +75,8 @@ class Viewer:
         """The scene displayed by the viewer."""
         self._scene = scene
         self._controller = None if scene is None else Controller(scene)
-        self._input_text = self._output_text = ''
+        self._input_text = ''
+        self._output_text = self._initial_output
 
     @property
     def title(self) -> Optional[str]:
