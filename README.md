@@ -1,12 +1,21 @@
 # SHRDLU Blocks
 
 This package is a rough approximation of the blocks environment originally used
-by Terry Winograd's SHDRLU program. It is meant to provide a simple means for 
-evaluating and testing natural language understanding systems. Hooking into the
-environment is a matter of defining a single callback function and passing it 
-into the framework.
+by Terry Winograd's SHDRLU program. It is meant to provide a simple and 
+lightweight means for evaluating and testing natural language understanding 
+systems. Hooking into the environment is a matter of defining a single callback
+function and passing it into the framework.
 
 ![Screenshot](https://raw.githubusercontent.com/hosford42/SHRDLUBlocks/master/images/SHRDLU%20Blocks%20Demo%20(Cropped).png)
+
+
+## Installation
+
+To install:
+
+```commandline
+pip install shrdlu_blocks
+```
 
 
 ## Usage
