@@ -139,7 +139,7 @@ def make_standard_scene() -> Scene:
         Color(255, 0, 0),
         Point(-0.3, 0.1, 0),
         dict(kind='block', size='big', height='tall', width='wide', color='red', graspable=True,
-             can_support=True)
+             can_support=True, resting_on=table)
     )
 
     small_red_block = PhysicalObject(
@@ -147,7 +147,7 @@ def make_standard_scene() -> Scene:
         Color(255, 0, 0),
         Point(-0.25, -0.2, 0),
         dict(kind='block', size='small', height='short', width='narrow', color='red',
-             graspable=True, can_support=True)
+             graspable=True, can_support=True, resting_on=table)
     )
 
     small_green_pyramid = PhysicalObject(
@@ -155,7 +155,7 @@ def make_standard_scene() -> Scene:
         Color(0, 255, 0),
         Point(-0.25, -0.2, 0.08),
         dict(kind='pyramid', size='small', height='short', width='narrow', color='green',
-             graspable=True, can_support=False)
+             graspable=True, can_support=False, resting_on=small_red_block)
     )
 
     medium_sized_green_block = PhysicalObject(
@@ -163,7 +163,7 @@ def make_standard_scene() -> Scene:
         Color(0, 255, 0),
         Point(-0.3, 0.05, 0.15),
         dict(kind='block', size='medium', height='medium', width='wide', color='green',
-             graspable=True, can_support=True)
+             graspable=True, can_support=True, resting_on=big_red_block)
     )
 
     tall_blue_block = PhysicalObject(
@@ -171,7 +171,7 @@ def make_standard_scene() -> Scene:
         Color(0, 0, 255),
         Point(-0.1, 0.4, 0),
         dict(kind='block', size='big', height='tall', width='medium', color='blue', graspable=True,
-             can_support=True)
+             can_support=True, resting_on=table)
     )
 
     big_green_block = PhysicalObject(
@@ -179,7 +179,7 @@ def make_standard_scene() -> Scene:
         Color(0, 255, 0),
         Point(0.1, -0.15, 0),
         dict(kind='block', size='big', height='tall', width='wide', color='green', graspable=True,
-             can_support=True)
+             can_support=True, resting_on=table)
     )
 
     tall_red_pyramid = PhysicalObject(
@@ -187,7 +187,7 @@ def make_standard_scene() -> Scene:
         Color(255, 0, 0),
         Point(0.15, -0.1, 0.15),
         dict(kind='pyramid', size='medium', height='tall', width='narrow', color='red',
-             graspable=True, can_support=False)
+             graspable=True, can_support=False, resting_on=big_green_block)
     )
 
     big_white_box = PhysicalObject(
@@ -195,7 +195,7 @@ def make_standard_scene() -> Scene:
         Color(255, 255, 255),
         Point(0.25, 0.25, 0),
         dict(kind='box', size='big', height='medium', width='wide', color='white', graspable=False,
-             can_support=True)
+             can_support=True, resting_on=table)
     )
 
     wide_blue_pyramid = PhysicalObject(
@@ -203,7 +203,7 @@ def make_standard_scene() -> Scene:
         Color(0, 0, 255),
         Point(0.25, 0.25, 0),
         dict(kind='pyramid', size='medium', height='medium', width='medium', color='blue',
-             graspable=True, can_support=False)
+             graspable=True, can_support=False, resting_on=big_white_box)
     )
 
     objects = [
@@ -221,4 +221,9 @@ def make_standard_scene() -> Scene:
     ]
     for index, obj in enumerate(objects):
         obj.tags['obj_id'] = ObjectID(index)
+    for obj in objects:
+        resting_on = obj.tags.get('resting_on', None)
+        if resting_on is not None:
+            assert isinstance(resting_on, PhysicalObject)
+            obj.tags['resting_on'] = resting_on.tags['obj_id']
     return Scene(tuple(objects), dict(created=time.time()))

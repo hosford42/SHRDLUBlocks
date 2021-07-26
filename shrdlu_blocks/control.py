@@ -70,9 +70,6 @@ class Controller:
                 if resting_on.tags.get('graspable', False):
                     grasper.tags['grasped'] = resting_on_id
                     resting_on.tags['grasped_by'] = grasper.tags.get('obj_id', None)
-                    target, target_height = self._find_object_below_grasper(grasper)
-                    if target:
-                        grasper.tags['resting_on'] = target.tags.get('obj_id', None)
         grasper.tags['closed'] = True
 
     def open_grasper(self, grasper_id: ObjectID = None) -> None:
@@ -88,7 +85,7 @@ class Controller:
             if not grasper.tags.get('lowered', False):
                 raise UnmetConditionError('Grasper must be lowered first when holding an object.')
             # If an object was grasped, we have to be above another object that can support it.
-            resting_on_id = grasper.tags.get('resting_on', None)
+            resting_on_id = grasped_obj.tags.get('resting_on', None)
             if resting_on_id is None:
                 raise UnmetConditionError('Object must be lowered onto another object that can '
                                           'support it in order to be dropped.')
@@ -100,7 +97,6 @@ class Controller:
             # Let go of the object.
             grasped_obj.tags['grasped_by'] = None
             grasper.tags['grasped'] = None
-            grasper.tags['resting_on'] = grasped_obj_id
         grasper.tags['closed'] = False
 
     def move_grasper(self, x: float = None, y: float = None, grasper_id: ObjectID = None) -> None:
@@ -162,7 +158,7 @@ class Controller:
             grasper.position = Point(grasper.position.x, grasper.position.y, target_height + height)
             grasped_obj.position = Point(grasper.position.x, grasper.position.y, target_height)
             if target:
-                grasper.tags['resting_on'] = target.tags.get('obj_id', None)
+                grasped_obj.tags['resting_on'] = target.tags.get('obj_id', None)
         grasper.tags['lowered'] = True
 
     def raise_grasper(self, grasper_id: ObjectID = None) -> None:
@@ -177,13 +173,14 @@ class Controller:
         grasped_obj_id = grasper.tags.get('grasped', None)
         if grasped_obj_id is None:
             grasper.position = Point(grasper.position.x, grasper.position.y, minimum_height)
+            grasper.tags['resting_on'] = None
         else:
             grasped_obj = self._require_specific_object(grasped_obj_id)
             grasped_obj.position = Point(grasper.position.x, grasper.position.y, minimum_height)
             highest_point = grasped_obj.find_highest_point()
             grasper.position = Point(grasper.position.x, grasper.position.y, highest_point.z)
+            grasped_obj.tags['resting_on'] = None
         grasper.tags['lowered'] = False
-        grasper.tags['resting_on'] = None
 
     def find_objects(self, **tags) -> Iterator[ObjectID]:
         """Query the objects in the scene. An iterator will be returned over
