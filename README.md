@@ -153,7 +153,12 @@ Tags whose values are updated by the controller include:
   grasper currently grasping it.
 * `resting_on` An optional `ObjectID` associated with any object indicating the
   object it is directly resting on.
-  
+* `highlight` A boolean flag associated with any object indicating whether it
+  is highlighted in the display.
+* `highlight_color` An optional `Color` which indicates the color that the 
+  object will flash when highlighted. (`None` indicates a system-selected 
+  color.)
+
 ### Controllers
 
 #### Controller Properties
@@ -190,6 +195,9 @@ Tags whose values are updated by the controller include:
   also cause the grasper to release an object it has grasped. 
 * `raise_grasper` Raise the grasper. If the grasper is grasping an object, the
   object will be raised with it.
+* `highlight_object` Highlight the object by causing it to flash. A flashing 
+  color can be specified.
+* `unhighlight_object` Stop highlighting the object.
 
 
 ## Links to Resources

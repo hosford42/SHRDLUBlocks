@@ -206,6 +206,8 @@ class Controller:
 
     def highlight_object(self, obj_id: ObjectID, color: Color = None) -> None:
         """Highlight an object."""
+        if color is not None and not isinstance(color, Color):
+            color = Color(*color)
         self._require_specific_object(obj_id).tags['highlight'] = True
         self._require_specific_object(obj_id).tags['highlight_color'] = color
 
