@@ -6,7 +6,7 @@ evaluating and testing natural language understanding systems. Hooking into the
 environment is a matter of defining a single callback function and passing it 
 into the framework.
 
-![Screenshot](/images/SHRDLU%20Blocks%20Demo%20(Cropped).png)
+![Screenshot](images/SHRDLU%20Blocks%20Demo%20(Cropped).png)
 
 
 ## Usage
