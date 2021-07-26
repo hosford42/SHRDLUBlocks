@@ -169,7 +169,9 @@ Tags whose values are updated by the controller include:
 
 ## Links to Resources
 
-* The Wikipedia page for SHRDLU: https://en.wikipedia.org/wiki/SHRDLU
-* Terry Winograd's SHRDLU page: https://hci.stanford.edu/winograd/shrdlu/
-* SHRDLU's source code: http://hci.stanford.edu/~winograd/shrdlu/code/
-* 3D Graphics with Pygame (Tutorial): https://www.petercollingridge.co.uk/tutorials/3d/pygame/
+* [The Wikipedia page for SHRDLU](https://en.wikipedia.org/wiki/SHRDLU)
+* [Terry Winograd's SHRDLU page](https://hci.stanford.edu/winograd/shrdlu/)
+* [SHRDLU's source code](http://hci.stanford.edu/~winograd/shrdlu/code/)
+* [Procedures as a Representation for Data in a Computer Program for 
+  Understanding Natural Language](https://hci.stanford.edu/winograd/shrdlu/AITR-235.pdf)
+* [3D Graphics with Pygame (Tutorial)](https://www.petercollingridge.co.uk/tutorials/3d/pygame/)
