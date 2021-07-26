@@ -1,10 +1,13 @@
 # SHRDLU Blocks
 
 This package is a rough approximation of the blocks environment originally used
-by Terry Winograd's SHDRLU program. It is meant to provide a simple environment 
-for evaluating and testing natural language understanding systems. Hooking into
-the environment is a matter of defining a single callback function and passing 
-it into the framework.
+by Terry Winograd's SHDRLU program. It is meant to provide a simple means for 
+evaluating and testing natural language understanding systems. Hooking into the
+environment is a matter of defining a single callback function and passing it 
+into the framework.
+
+![Screenshot](/images/SHRDLU%20Blocks%20Demo%20(Cropped).png)
+
 
 ## Usage
 
