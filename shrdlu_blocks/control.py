@@ -4,8 +4,7 @@ from typing import Optional, Any, Dict, Iterator, Tuple
 
 from shrdlu_blocks.geometry import Point
 from shrdlu_blocks.scenes import Scene, PhysicalObject
-from shrdlu_blocks.typedefs import UnmetConditionError, ObjectID
-
+from shrdlu_blocks.typedefs import UnmetConditionError, ObjectID, Color
 
 __all__ = ['Controller']
 
@@ -204,6 +203,16 @@ class Controller:
     def get_object_position(self, obj_id: ObjectID) -> Point:
         """Query the position of an object in the scene."""
         return self._require_specific_object(obj_id).position
+
+    def highlight_object(self, obj_id: ObjectID, color: Color = None) -> None:
+        """Highlight an object."""
+        self._require_specific_object(obj_id).tags['highlight'] = True
+        self._require_specific_object(obj_id).tags['highlight_color'] = color
+
+    def unhighlight_object(self, obj_id: ObjectID) -> None:
+        """Remove an object's highlighting."""
+        self._require_specific_object(obj_id).tags['highlight'] = False
+        self._require_specific_object(obj_id).tags['highlight_color'] = None
 
     def _get_specific_grasper(self, grasper_id: ObjectID) -> Optional[PhysicalObject]:
         """Return the specific grasper indicated by the given grasper ID. If no

@@ -2,6 +2,7 @@
 
 import textwrap
 import threading
+import time
 import traceback
 from typing import Optional, Tuple, Callable, List, Any
 
@@ -64,6 +65,8 @@ class Viewer:
         self._output_text = self._initial_output
         self._input_text = ''
         self._input_enabled = True
+
+        self._highlight_flash_seconds = 0.5
 
     @property
     def scene(self) -> Optional[Scene]:
@@ -146,6 +149,7 @@ class Viewer:
                     raise
 
     def display_scene(self) -> None:
+        highlighting_active = int(time.time() / self._highlight_flash_seconds) % 2
         self._screen.fill(self._wall_color)
         if not self._scene:
             return
@@ -153,6 +157,14 @@ class Viewer:
         for obj in self._scene.objects:
             transformed_shape = self._screen_center - self._view_center + \
                                 (obj.position + obj.shape) * self._zoom
+            if highlighting_active and obj.tags.get('highlight', False):
+                color = obj.tags.get('highlight_color', None)
+                if color is None:
+                    # If no color specified, choose a suitable one automatically.
+                    r, g, b = obj.color
+                    color = Color(255 * (r < 128), 255 * (g < 128), 255 * (b < 255))
+            else:
+                color = obj.color
             for surface in transformed_shape.surfaces:
                 remaining_edges = set(surface.edges)
                 edge = remaining_edges.pop()
@@ -169,7 +181,7 @@ class Viewer:
                             break
                     else:
                         assert not remaining_edges, remaining_edges
-                polygons.append((obj.color, points))
+                polygons.append((color, points))
         polygons.sort(key=lambda polygon: tuple(sorted(((point.y, -point.x, -point.z)
                                                         for point in polygon[1]),
                                                        reverse=True)),
