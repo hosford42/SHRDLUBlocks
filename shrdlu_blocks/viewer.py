@@ -279,13 +279,12 @@ class Viewer:
         try:
             assert self._controller is not None
             output_text = self._callback(self._controller, input_text)
-            if output_text is None:
-                output_text = ''
-            elif not isinstance(output_text, str):
+            if output_text and not isinstance(output_text, str):
                 raise TypeError(output_text)
         except Exception:
             output_text = traceback.format_exc()
         finally:
             print(output_text)
-            self._output_queue.append(output_text)
+            if output_text is not None:
+                self._output_queue.append(output_text)
             self._input_enabled = True
