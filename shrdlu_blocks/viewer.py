@@ -4,7 +4,8 @@ import textwrap
 import threading
 import time
 import traceback
-from typing import Optional, Tuple, Callable, List, Any
+from collections import deque
+from typing import Optional, Tuple, Callable, List, Any, Deque
 
 import pygame.display
 
@@ -14,6 +15,9 @@ from shrdlu_blocks.scenes import Scene, make_standard_scene
 from shrdlu_blocks.typedefs import Color
 
 __all__ = ['Viewer']
+
+
+ResponseCallback = Callable[[Controller, str], str]
 
 
 class Viewer:
@@ -26,8 +30,7 @@ class Viewer:
     the text entered by the user.
     """
 
-    def __init__(self, screen, title: str = None,
-                 callback: Callable[[Controller, str], str] = None,
+    def __init__(self, screen, title: str = None, callback: ResponseCallback = None,
                  initial_output: str = None):
         self._screen = screen
         self._width = self._screen.get_width()
@@ -68,6 +71,10 @@ class Viewer:
 
         self._highlight_flash_seconds = 0.5
 
+        self._input_available = threading.Event()
+        self._input_queue = deque()
+        self._output_queue = deque()
+
     @property
     def scene(self) -> Optional[Scene]:
         """The scene displayed by the viewer."""
@@ -103,6 +110,27 @@ class Viewer:
         """The callback for handling text input to the viewer."""
         self._callback = value
 
+    @property
+    def input_available(self) -> bool:
+        """Whether there is input from the user currently waiting to be processed."""
+        return bool(self._input_queue)
+
+    def wait_for_input(self, timeout: float = None) -> None:
+        """Wait for an input to become available."""
+        if not self._input_queue:
+            self._input_available.wait(timeout)
+        self._input_available.clear()
+
+    def get_input(self) -> Optional[str]:
+        """Get the next input from the user."""
+        if self._input_queue:
+            return self._input_queue.popleft()
+        return None
+
+    def send_output(self, text: str) -> None:
+        """Show an output to the user."""
+        self._output_queue.append(text)
+
     def move_camera(self, relative_position: Point) -> None:
         self._view_center += relative_position
 
@@ -110,43 +138,41 @@ class Viewer:
         self._zoom *= relative_zoom
 
     def run(self):
-        alive = True
-        while alive:
-            try:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        alive = False
-                    elif (self._scene and
-                          self._input_enabled and
-                          self._callback and
-                          event.type == pygame.KEYDOWN):
-                        if event.key == pygame.K_RETURN:
-                            input_text = self._input_text
-                            self._input_text = self._output_text = ''
-                            thread = threading.Thread(target=self._run_callback, args=(input_text,))
-                            thread.start()
-                        elif event.key == pygame.K_BACKSPACE:
-                            self._input_text = self._input_text[:-1]
-                        else:
-                            self._input_text += event.unicode
-            except pygame.error as e:
-                if 'video system not initialized' in str(e):
-                    # Happens sometimes when we quit from another thread.
-                    break
-                else:
-                    raise
-
-            try:
+        try:
+            while self.handle_events():
                 self.display_scene()
                 self.display_input_text_box()
                 self.display_output_text_box()
                 pygame.display.flip()
-            except pygame.error as e:
-                if 'display Surface quit' in str(e):
-                    # Happens sometimes when we quit from another thread.
-                    break
+        except pygame.error as e:
+            # Silence a couple of harmless exceptions that can happen when we quit from
+            # another thread.
+            e_str = str(e)
+            if 'video system not initialized' in e_str or 'display Surface quit' in e_str:
+                return
+            raise
+
+    def handle_events(self) -> bool:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            elif self._scene and self._input_enabled and event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    input_text = self._input_text
+                    self._input_text = self._output_text = ''
+                    if self._callback:
+                        thread = threading.Thread(target=self._run_callback, args=(input_text,))
+                        thread.start()
+                    else:
+                        self._input_queue.append(input_text)
+                        self._input_available.set()
+                elif event.key == pygame.K_BACKSPACE:
+                    self._input_text = self._input_text[:-1]
                 else:
-                    raise
+                    self._input_text += event.unicode
+        if self._output_queue:
+            self._output_text = self._output_queue.popleft()
+        return True
 
     def display_scene(self) -> None:
         highlighting_active = int(time.time() / self._highlight_flash_seconds) % 2
@@ -261,5 +287,5 @@ class Viewer:
             output_text = traceback.format_exc()
         finally:
             print(output_text)
-            self._output_text = output_text
+            self._output_queue.append(output_text)
             self._input_enabled = True
