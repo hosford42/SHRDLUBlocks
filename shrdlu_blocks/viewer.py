@@ -1,20 +1,21 @@
 """Functionality for viewing and interacting with a scene."""
-
+import logging
 import textwrap
 import threading
 import time
-import traceback
 from collections import deque
-from typing import Optional, Tuple, Callable, List, Any, Deque
+from typing import Optional, Tuple, Callable, List, Any
 
 import pygame.display
-
-from shrdlu_blocks.geometry import Point
 from shrdlu_blocks.control import Controller
+from shrdlu_blocks.geometry import Point
 from shrdlu_blocks.scenes import Scene, make_standard_scene
 from shrdlu_blocks.typedefs import Color
 
 __all__ = ['Viewer']
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 ResponseCallback = Callable[[Controller, str], str]
@@ -129,6 +130,7 @@ class Viewer:
 
     def send_output(self, text: str) -> None:
         """Show an output to the user."""
+        LOGGER.info("Output received asynchronously:\n%s", text)
         self._output_queue.append(text)
 
     def move_camera(self, relative_position: Point) -> None:
@@ -159,7 +161,7 @@ class Viewer:
             elif self._scene and self._input_enabled and event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     input_text = self._input_text
-                    self._input_text = self._output_text = ''
+                    self._input_text = ''
                     if self._callback:
                         thread = threading.Thread(target=self._run_callback, args=(input_text,))
                         thread.start()
@@ -172,6 +174,7 @@ class Viewer:
                     self._input_text += event.unicode
         if self._output_queue:
             self._output_text = self._output_queue.popleft()
+            LOGGER.info("Displaying output:\n%s", self._output_text)
         return True
 
     def display_scene(self) -> None:
@@ -273,18 +276,20 @@ class Viewer:
     def _run_callback(self, input_text: str) -> None:
         self._input_enabled = False
         for line in input_text.splitlines(keepends=False):
-            print('>>> ' + line)
-        output_text = ''
+            LOGGER.info('Input:\n%s', line)
         # noinspection PyBroadException
         try:
             assert self._controller is not None
             output_text = self._callback(self._controller, input_text)
             if output_text and not isinstance(output_text, str):
                 raise TypeError(output_text)
-        except Exception:
-            output_text = traceback.format_exc()
-        finally:
-            print(output_text)
+            if output_text is None:
+                LOGGER.info('No synchronous output.')
+            else:
+                LOGGER.info('Output received synchronously:\n%s', output_text)
             if output_text is not None:
                 self._output_queue.append(output_text)
+        except Exception:
+            LOGGER.exception("Error in callback:")
+        finally:
             self._input_enabled = True

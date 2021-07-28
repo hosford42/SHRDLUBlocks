@@ -11,16 +11,14 @@ grasper. Type `help` to get a list of commands.
 
 import ast
 import io
-import sys
+import logging
 import traceback
 
 import pygame.display
-
 from shrdlu_blocks.control import Controller
+from shrdlu_blocks.scenes import PhysicalObject
 from shrdlu_blocks.typedefs import UnmetConditionError, ObjectID
-from shrdlu_blocks.scenes import make_standard_scene, PhysicalObject
 from shrdlu_blocks.viewer import Viewer
-
 
 __all__ = ['demo']
 
@@ -38,14 +36,14 @@ def demo_callback(controller: Controller, command: str) -> str:
         for name in dir(controller):
             if not name.startswith('_'):
                 print("    " + name, file=output_buffer)
-        return output_buffer.getvalue()
+        return output_buffer.getvalue() or None
     pieces = command.split()
     command = pieces.pop(0)
     if not command:
-        return output_buffer.getvalue()
+        return output_buffer.getvalue() or None
     if '.' in command or command.startswith('_') or command not in dir(controller):
         print("ERROR: Invalid command", file=output_buffer)
-        return output_buffer.getvalue()
+        return output_buffer.getvalue() or None
     # noinspection PyBroadException
     try:
         args = []
@@ -55,7 +53,11 @@ def demo_callback(controller: Controller, command: str) -> str:
             except ValueError:
                 arg = piece
             args.append(arg)
-        result = getattr(controller, command)(*args)
+        attribute = getattr(controller, command)
+        if callable(attribute) or args:
+            result = attribute(*args)
+        else:
+            result = attribute
         if result is None:
             pass
         elif isinstance(result, str) or not hasattr(result, '__iter__'):
@@ -77,7 +79,7 @@ def demo_callback(controller: Controller, command: str) -> str:
         print(e, file=output_buffer)
     except Exception:
         traceback.print_exc(file=output_buffer)
-    return output_buffer.getvalue()
+    return output_buffer.getvalue() or None
 
 
 def demo():
@@ -102,4 +104,6 @@ def demo():
 
 
 if __name__ == '__main__':
+    import sys
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     demo()

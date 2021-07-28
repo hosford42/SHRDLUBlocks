@@ -1,5 +1,5 @@
 """The implementation of the physics of the simulated environment."""
-
+import logging
 from typing import Optional, Any, Dict, Iterator, Tuple
 
 from shrdlu_blocks.geometry import Point
@@ -7,6 +7,9 @@ from shrdlu_blocks.scenes import Scene, PhysicalObject
 from shrdlu_blocks.typedefs import UnmetConditionError, ObjectID, Color
 
 __all__ = ['Controller']
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Controller:
@@ -28,34 +31,49 @@ class Controller:
     def default_grasper(self) -> Optional[ObjectID]:
         """The default grasper that is used when no grasper is specified in
         calls to methods which require one."""
+        LOGGER.info("Query: default_grasper?")
         if self._default_grasper is None:
-            return None
-        return self._default_grasper.tags.get('obj_id', None)
+            result = None
+        else:
+            result = self._default_grasper.tags.get('obj_id', None)
+        LOGGER.info("Query result: default_grasper == %r", result)
+        return result
 
     @default_grasper.setter
     def default_grasper(self, grasper_id: ObjectID) -> None:
         """The default grasper that is used when no grasper is specified in
         calls to methods which require one."""
+        LOGGER.info("Action: default_grasper = %r", grasper_id)
         self._default_grasper = self._require_grasper(grasper_id)
 
     def grasper_is_closed(self, grasper_id: ObjectID = None) -> bool:
         """Query whether the grasper is closed. Returns a boolean value."""
-        return self._require_grasper(grasper_id).tags.get('closed', False)
+        LOGGER.info("Query: grasper_is_closed(grasper_id=%r)?", grasper_id)
+        result = self._require_grasper(grasper_id).tags.get('closed', False)
+        LOGGER.info("Query result: grasper_is_closed(grasper_id=%r) == %r", grasper_id, result)
+        return result
 
     def grasper_is_lowered(self, grasper_id: ObjectID = None) -> bool:
         """Query whether the grasper is lowered. Returns a boolean value."""
-        return self._require_grasper(grasper_id).tags.get('lowered', False)
+        LOGGER.info("Query: grasper_is_lowered(grasper_id=%r)?", grasper_id)
+        result = self._require_grasper(grasper_id).tags.get('lowered', False)
+        LOGGER.info("Query result: grasper_is_lowered(grasper_id=%r) == %r", grasper_id, result)
+        return result
 
     def get_grasped_object(self, grasper_id: ObjectID = None) -> Optional[ObjectID]:
         """Query which object is currently grasped by the grasper. Returns the
         object ID of the grasped object, or None if no object is currently
         grasped."""
-        return self._require_grasper(grasper_id).tags.get('grasped', None)
+        LOGGER.info("Query: get_grasped_object(grasper_id=%r)?", grasper_id)
+        result = self._require_grasper(grasper_id).tags.get('grasped', None)
+        LOGGER.info("Query result: get_grasped_object(grasper_id=%r) == %r", grasper_id, result)
+        return result
 
     def close_grasper(self, grasper_id: ObjectID = None) -> None:
         """Attempt to close the grasper. If the grasper is resting on a
         graspable object and is situated at its center of mass, the grasper
         will begin grasping the object."""
+        LOGGER.info("Action: close_grasper(grasper_id=%r)", grasper_id)
         grasper = self._require_grasper(grasper_id)
         del grasper_id
         if grasper.tags.get('closed', False):
@@ -74,6 +92,7 @@ class Controller:
     def open_grasper(self, grasper_id: ObjectID = None) -> None:
         """Attempt to open the grasper. If the grasper is holding an object and
         the object is supported, the object will be released."""
+        LOGGER.info("Action: open_grasper(grasper_id=%r)", grasper_id)
         grasper = self._require_grasper(grasper_id)
         del grasper_id
         if not grasper.tags.get('closed', False):
@@ -102,6 +121,7 @@ class Controller:
         """Attempt to move the grasper to a new (x, y) coordinate. One or both
         coordinates must be specified. If either coordinate is omitted, its
         current value will be assumed."""
+        LOGGER.info("Action: move_grasper(x=%r, y=%r, grasper_id=%r)", x, y, grasper_id)
         if x is not None and not isinstance(x, (int, float)):
             raise TypeError(x)
         if y is not None and not isinstance(y, (int, float)):
@@ -131,6 +151,7 @@ class Controller:
         the grasper is maximally extended, whichever comes first. (The grasper
         can be extended down to 'ground level', where the z coordinate is zero,
         and no further.)"""
+        LOGGER.info("Action: lower_grasper(grasper_id=%r)", grasper_id)
         grasper = self._require_grasper(grasper_id)
         del grasper_id
         if grasper.tags.get('lowered', False):
@@ -164,6 +185,7 @@ class Controller:
         """Attempt to raise the grasper. The grasper will be raised until it
         and the object it is holding, if any, are high enough to safely clear
         all objects in the scene."""
+        LOGGER.info("Action: raise_grasper(grasper_id=%r)", grasper_id)
         grasper = self._require_grasper(grasper_id)
         del grasper_id
         if not grasper.tags.get('lowered', False):
@@ -186,26 +208,39 @@ class Controller:
         all objects in the scene whose tag values match the given keyword
         arguments exactly. If no keyword arguments are provided, an iterator
         over all objects in the scene will be returned."""
+        LOGGER.info("Query: find_objects(**%r)?", tags)
         for obj in self._scene.find_objects(**tags):
             obj_id = obj.tags.get('obj_id', None)
             if obj_id is not None:
+                LOGGER.info("Query result item: %r in find_objects(**%r)", obj_id, tags)
                 yield obj_id
 
     def get_object_tag(self, obj_id: ObjectID, tag: str, default: Any = None) -> Any:
         """Query the value of an object's tag. If the object does not have a
         value for the given tag, the default is returned."""
-        return self._require_specific_object(obj_id).tags.get(tag, default)
+        LOGGER.info("Query: get_object_tag(obj_id=%r, tag=%r, default=%r)?", obj_id, tag, default)
+        result = self._require_specific_object(obj_id).tags.get(tag, default)
+        LOGGER.info("Query result: get_object_tag(obj_id=%r, tag=%r, default=%r) == %r", obj_id,
+                    tag, default, result)
+        return result
 
     def iter_object_tags(self, obj_id: ObjectID) -> Iterator[Tuple[str, Any]]:
         """Query the tag key/value pairs associated with the object."""
-        yield  from self._require_specific_object(obj_id).tags.items()
+        LOGGER.info("Query: iter_object_tags(obj_id=%r)?", obj_id)
+        for item in self._require_specific_object(obj_id).tags.items():
+            LOGGER.info("Query result item: %r in iter_object_tags(obj_id=%r)", item, obj_id)
+            yield item
 
     def get_object_position(self, obj_id: ObjectID) -> Point:
         """Query the position of an object in the scene."""
-        return self._require_specific_object(obj_id).position
+        LOGGER.info("Query: get_object_position(obj_id=%r)?", obj_id)
+        result = self._require_specific_object(obj_id).position
+        LOGGER.info("Query result: get_object_position(obj_id=%r) == %r", obj_id, result)
+        return result
 
     def highlight_object(self, obj_id: ObjectID, color: Color = None) -> None:
         """Highlight an object."""
+        LOGGER.info("Action: highlight_object(obj_id=%r, color=%r)", obj_id, color)
         if color is not None and not isinstance(color, Color):
             color = Color(*color)
         self._require_specific_object(obj_id).tags['highlight'] = True
@@ -213,6 +248,7 @@ class Controller:
 
     def unhighlight_object(self, obj_id: ObjectID) -> None:
         """Remove an object's highlighting."""
+        LOGGER.info("Action: unhighlight_object(obj_id=%r)", obj_id)
         self._require_specific_object(obj_id).tags['highlight'] = False
         self._require_specific_object(obj_id).tags['highlight_color'] = None
 
