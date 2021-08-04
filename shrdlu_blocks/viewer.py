@@ -3,6 +3,7 @@ import logging
 import textwrap
 import threading
 import time
+import typing
 from collections import deque
 from typing import Optional, Tuple, Callable, List, Any
 
@@ -115,6 +116,11 @@ class Viewer:
     def input_available(self) -> bool:
         """Whether there is input from the user currently waiting to be processed."""
         return bool(self._input_queue)
+
+    @property
+    def controller(self) -> typing.Optional[Controller]:
+        """The controller for the scene."""
+        return self._controller
 
     def wait_for_input(self, timeout: float = None) -> None:
         """Wait for an input to become available."""
