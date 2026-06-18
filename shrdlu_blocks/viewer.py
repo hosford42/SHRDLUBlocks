@@ -118,8 +118,18 @@ class Viewer:
         return bool(self._input_queue)
 
     @property
+    def screen(self):
+        """The surface the scene is rendered on."""
+        return self._screen
+
+    @property
     def controller(self) -> typing.Optional[Controller]:
-        """The controller for the scene."""
+        """The controller for the currently displayed scene.
+
+        Returns None if no scene is set. Callers that drive the viewer
+        externally (i.e. without calling run) should use this property
+        rather than the callback mechanism to issue commands to the scene.
+        """
         return self._controller
 
     def wait_for_input(self, timeout: float = None) -> None:
@@ -145,12 +155,26 @@ class Viewer:
     def adjust_zoom(self, relative_zoom: float) -> None:
         self._zoom *= relative_zoom
 
+    def draw_frame(self) -> None:
+        """Render one frame to the viewer's surface.
+
+        Draws the scene and any text overlays onto self.screen but does
+        *not* call pygame.display.flip().  This allows callers that drive
+        the event loop themselves to composite additional content onto the
+        surface (or blit it into a larger display) before presenting.
+
+        Use run for the standard self-contained interactive loop.
+        Use this method when embedding the viewer inside a larger application
+        that owns the display and event loop.
+        """
+        self.display_scene()
+        self.display_input_text_box()
+        self.display_output_text_box()
+
     def run(self):
         try:
             while self.handle_events():
-                self.display_scene()
-                self.display_input_text_box()
-                self.display_output_text_box()
+                self.draw_frame()
                 pygame.display.flip()
         except pygame.error as e:
             # Silence a couple of harmless exceptions that can happen when we quit from
